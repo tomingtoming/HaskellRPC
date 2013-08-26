@@ -5,16 +5,29 @@ import Network.MessagePackRpc.Client
 import Control.Monad.IO.Class (liftIO)
 
 main :: IO ()
-main = withSocketsDo $ runClient "localhost" 16544 $ do
-  res1 <- add 5 10
-  liftIO $ print res1
-  res2 <- minus 5 10
-  liftIO $ print res2
-  res3 <- add res1 res2
-  liftIO $ print res3
+main = withSocketsDo $ runClient "localhost" 16544 mainLoop
+
+mainLoop :: Client ()
+mainLoop = do
+  a:b:c:d:_ <- sequence $ take 10 $ repeat $ rand
+  x:y:_     <- sequence [add a b, minus c d]
+  _         <- sequence [push x, push y]
+  _         <- pop
+  res       <- sequence [pop, pop]
+  liftIO $ print res
+  mainLoop
 
 add :: Int -> Int -> Client Int
 add = call "add"
 
 minus :: Int -> Int -> Client Int
 minus = call "minus"
+
+push :: Int -> Client ()
+push = call "push"
+
+pop :: Client (Maybe Int)
+pop = call "pop"
+
+rand :: Client Int
+rand = call "rand"
