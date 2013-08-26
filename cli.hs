@@ -2,12 +2,19 @@
 
 import Network
 import Network.MessagePackRpc.Client
-import Data.MessagePack
-import qualified Data.ByteString.Char8 as C8
+import Control.Monad.IO.Class (liftIO)
 
 main :: IO ()
-main = withSocketsDo $ do
-  runClient "localhost" 16544 add
+main = withSocketsDo $ runClient "localhost" 16544 $ do
+  res1 <- add 5 10
+  liftIO $ print res1
+  res2 <- minus 5 10
+  liftIO $ print res2
+  res3 <- add res1 res2
+  liftIO $ print res3
 
-add :: Client Int
-add = call "add" (1::Int) (1::Int)
+add :: Int -> Int -> Client Int
+add = call "add"
+
+minus :: Int -> Int -> Client Int
+minus = call "minus"
